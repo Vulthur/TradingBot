@@ -1,0 +1,49 @@
+{
+  "name": "tradingbot",
+  "author": "Luc Scholz",
+  "license": "ISC",
+  "version": "1.0.0",
+  "description": "Trading bot",
+  "private": true,
+  "scripts": {
+    "build-client": "webpack",
+    "watch-client": "webpack -w",
+    "build-server": "tsc -p tsconfig-server.json",
+    "build-bot": "tsc -p tsconfig-bot.json",
+    "watch-server": "concurrently -k -p \"[{name}]\" -n \"Tsc,Nodemon\" -c \"blue.bold,yellow.bold\" \"tsc -w\" \"nodemon --watch ./dist/server/ ./dist/server/server.js\"",
+    "watch-browser": "browser-sync start --config bs-config.js",
+    "build": "npm run build-client && npm run build-server",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"Client,Server,Browser\" -c \"cyan.bold,green.bold,red.bold\" \"npm run watch-client\" \"npm run watch-server\" \"npm run watch-browser\"",
+    "clean": "del-cli -f dist/*",
+    "start": "npm run build && opn http://localhost/ && node ./dist/server/server.js"
+  },
+  "dependencies": {
+    "pixi.js": "^4.8.7",
+    "vue": "^2.6.10",
+    "ws": "^6.2.1"
+  },
+  "devDependencies": {
+    "@types/pixi.js": "^4.8.7",
+    "@types/request": "^2.48.1",
+    "@types/ws": "^6.0.1",
+    "browser-sync": "^2.26.3",
+    "clean-webpack-plugin": "^1.0.1",
+    "concurrently": "^4.1.0",
+    "css-loader": "^2.1.1",
+    "del-cli": "^1.1.0",
+    "html-webpack-plugin": "^3.2.0",
+    "nodemon": "^1.18.11",
+    "opn-cli": "^4.1.0",
+    "request": "^2.88.0",
+    "ts-loader": "^5.3.2",
+    "typescript": "^3.2.2",
+    "uglifyjs-webpack-plugin": "^2.1.2",
+    "vue-loader": "^15.7.0",
+    "vue-template-compiler": "^2.6.10",
+    "webpack": "^4.29.6",
+    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-cli": "^3.3.0"
+  },
+  "keywords": [],
+  "main": "bs-config.js"
+}

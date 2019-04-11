@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "outDir": "./dist/",
+        "target": "es6",
+        "strict": true,
+        "sourceMap": true,
+        "declaration": true,
+        "moduleResolution": "node"
+    },
+    "exclude": [
+        "node_modules",
+        "src/client/",
+        "dist/"
+    ],
+    "include": [
+        "src/**/*"
+    ]
+}
