@@ -1,7 +1,7 @@
 export const Utils = {
     convertFormColorToHexColor: function(color: string): number {       
         if (!color.toUpperCase().match(/^#[0-9A-F]{6}$/))
-            throw "Incorrect color";
+            throw new Error("Incorrect color");
 
         return parseInt(color.replace("#", "0x"), 16);
     },

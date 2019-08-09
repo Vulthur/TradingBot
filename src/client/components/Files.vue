@@ -152,7 +152,7 @@
                             this.$emit('importFile');
                         });
                     } catch (error) {
-                        console.log(error);
+                        console.error(error);
                         this.error = "Error JSON File : " + error;
                     }    
                 }

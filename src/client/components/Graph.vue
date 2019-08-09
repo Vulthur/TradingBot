@@ -241,7 +241,7 @@
                     // Draw Strategy Graphs
                     for (let i = 0; i < this.strategys.length; i++) {
                         this.strategys[i].reset();
-                        this.strategys[i].calculate(this.datas);
+                        this.strategys[i].simulate(this.datas.$points);
                         
                         // Don't draw hided strat !
                         if(this.hidedStrategy.indexOf(this.strategys[i]) === -1){

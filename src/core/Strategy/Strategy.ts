@@ -1,5 +1,6 @@
 import { Action } from "../Action/Action";
 import { Graph } from "../Graph";
+import { Point } from "../Point";
 
 export interface StrategyJSON {
     name: string,
@@ -21,27 +22,35 @@ export abstract class Strategy {
     protected actions: Array<Action>;
     protected rentability: number;
     protected successRate: number;
+    protected minData: number;
+    protected trade: number;
+    protected tradeWon: number;
     protected graphs: { [name: string]: Graph; };
 
-    constructor($name: string, $leverage: number, $stopLoss: number, $pot: number, $alias: string) {
-		this.name = $name;
-		this.leverage = $leverage;
-		this.stopLoss = $stopLoss;
+    constructor($name: string, $leverage: number, $stopLoss: number, $pot: number, $alias: string,
+        $minData: number) {
+        this.name = $name;
+        this.leverage = $leverage;
+        this.stopLoss = $stopLoss;
         this.pot = $pot;
         this.resultPot = $pot;
         this.alias = $alias;
-		
+        this.minData = $minData;
+
         this.actions = [];
-		this.graphs = {};
+        this.graphs = {};
         this.rentability = 0;
         this.successRate = 0;
-	}
+        this.trade = 0;
+        this.tradeWon = 0;
+    }
 
-    public abstract calculate(data: Graph) : boolean;
-    public abstract reset() : void;
+    public abstract simulate(data: Array<Point>): boolean;
+    public abstract calculate(data: Array<Point>, nbData: number): Array<Action> | null;
+    public abstract reset(): void;
     public abstract toJsonExtend(): StrategyJSON;
     protected toJson(): StrategyJSON {
-        return({
+        return ({
             "name": this.name,
             "leverage": this.leverage,
             "stopLoss": this.stopLoss,
@@ -90,7 +99,7 @@ export abstract class Strategy {
 	public get $pot(): number {
 		return this.pot;
 	}
-    
+
     /**
      * Getter $resultPot
      * @return {number}
@@ -122,13 +131,29 @@ export abstract class Strategy {
 	public get $successRate(): number {
 		return this.successRate;
 	}
-    
+
     /**
-     * Getter $rentability
-     * @return {{ [name: string]: Graph; }}
+     * Getter $minData
+     * @return {number}
      */
-    public get $graphs(): { [name: string]: Graph; } {
-		return this.graphs;
+	public get $minData(): number {
+		return this.minData;
+	}
+
+    /**
+     * Getter $trade
+     * @return {number}
+     */
+	public get $trade(): number {
+		return this.trade;
+	}
+
+    /**
+     * Getter $tradeWon
+     * @return {number}
+     */
+	public get $tradeWon(): number {
+		return this.tradeWon;
 	}
 
     /**
@@ -194,7 +219,7 @@ export abstract class Strategy {
 	public set $rentability(value: number) {
 		this.rentability = value;
 	}
-    
+
     /**
      * Setter $successRate
      * @param {number} value
@@ -204,12 +229,26 @@ export abstract class Strategy {
 	}
 
     /**
-     * Setter $rentability
-     * @param {{ [name: string]: Graph; }} graphs
+     * Setter $minData
+     * @param {number} value
      */
-    public set $graphs(graphs: { [name: string]: Graph; }) {
-        this.graphs = graphs;
+	public set $minData(value: number) {
+		this.minData = value;
 	}
 
-    
+    /**
+     * Setter $trade
+     * @param {number} value
+     */
+	public set $trade(value: number) {
+		this.trade = value;
+	}
+
+    /**
+     * Setter $tradeWon
+     * @param {number} value
+     */
+	public set $tradeWon(value: number) {
+		this.tradeWon = value;
+    }
 }

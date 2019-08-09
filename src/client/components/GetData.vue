@@ -75,7 +75,7 @@
                     },
                 }).then((response) => {
                     if(response.status === 400){
-                        throw response.statusText;
+                        throw new Error(response.statusText);
                     }
                     return response.json();
                 }).then((json) => {;

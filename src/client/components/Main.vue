@@ -64,7 +64,6 @@
             },
             loading(){
                 this.isLoading = true;
-                //this.$refs.LoadingComponent.$forceUpdate();
                 this.$forceUpdate();
                 console.log("Go " + Date.now());       
             },

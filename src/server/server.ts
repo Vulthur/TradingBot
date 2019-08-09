@@ -49,7 +49,8 @@ server.on('request', (req: http.IncomingMessage, res: http.ServerResponse) => {
                         res.writeHead(200, { "Content-Type": "text/json" });
                         res.write(JSON.stringify(data));                        
                         res.end();
-                    }).catch((error) => {    
+                    }).catch((error) => {   
+                        console.error(error);
                         res.statusCode = 400,
                         res.statusMessage = error;
                         res.end();

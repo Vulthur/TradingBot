@@ -10,24 +10,14 @@ export class ApiDataBitMex implements IApiData {
     private url: string;
     private apiId: string;
     private apiSecret: string;
-    private getDataMode: string;
-    private getDataPath: string;
-    private columns: string;
-    private nbMaxDataByRequest: number;
-    private reverse: boolean;
 
 	constructor() {
 		this.url = ConfigBitmex.url;
 		this.apiId = ConfigBitmex.apiId;
 		this.apiSecret = ConfigBitmex.apiSecret;
-		this.getDataMode = ConfigBitmex.getDataMode;
-		this.getDataPath = ConfigBitmex.getDataPath;
-		this.columns = ConfigBitmex.columns;
-		this.nbMaxDataByRequest = ConfigBitmex.nbMaxDataByRequest;
-        this.reverse = ConfigBitmex.reverse;
 	}
 
-    async getPastData($nbData: number | string, $format: string, $factorTime: number | string, $symbol: string,
+    public async getPastData($nbData: number | string, $format: string, $factorTime: number | string, $symbol: string,
             $lastDate: Date | string): Promise<Array<Point>> {
 
         // OverLoads
@@ -53,57 +43,55 @@ export class ApiDataBitMex implements IApiData {
 
         // Controles
         if(nbData < 0)
-            throw "nbData < 0";
+            throw new ApiDataBitMexError("nbData < 0");
         if(isNaN(nbData))
-            throw "Number of data not a number";
+            throw new ApiDataBitMexError("Number of data not a number");
 
         if (!($format in TimeFormatBitmex)){
-            throw "Format is incorrect : " + Object.keys(TimeFormatBitmex);
+            throw new ApiDataBitMexError("Format is incorrect : " + Object.keys(TimeFormatBitmex));
         }
 
         if(factorTime < 1)
-            throw "Time Factor < 1";
+            throw new ApiDataBitMexError("Time Factor < 1");
         if(isNaN(factorTime))
-            throw "Time Factor not a number";
+            throw new ApiDataBitMexError("Time Factor not a number");
 
         if($symbol === "")
-            throw "Symbol is empty";
-        
+            throw new ApiDataBitMexError("Symbol is empty"); 
         
         // Variables
         let expires = new Date().getTime() + (60 * 1000),
-            nbRequest = Math.ceil((nbData * factorTime) / this.nbMaxDataByRequest),
+            nbRequest = Math.ceil((nbData * factorTime) / ConfigBitmex.nbMaxDataByRequest),
             data = {},
             postBody = "",
             headers = {},
             returnData: Array<Point> = [],
             arrayPromises: Array<Promise<Array<Point>>> = [],
-            timeBetweenReq = TimeFormatBitmex[$format as keyof typeof TimeFormatBitmex] * this.nbMaxDataByRequest * factorTime;
-
-       
+            timeBetweenReq = TimeFormatBitmex[$format as keyof typeof TimeFormatBitmex] * ConfigBitmex.nbMaxDataByRequest 
+                    * factorTime;
 
         for (let i = 0; i < nbRequest; i++) {
             
             let endTime = lastDate.getTime() - i * timeBetweenReq;
 
             //Last request
-            if (i === nbRequest - 1 && (nbData * factorTime) % this.nbMaxDataByRequest !== 0){           
+            if (i === nbRequest - 1 && (nbData * factorTime) % ConfigBitmex.nbMaxDataByRequest !== 0){           
                 data = {
                     endTime: endTime,
-                    count: (nbData * factorTime) % this.nbMaxDataByRequest,
+                    count: (nbData * factorTime) % ConfigBitmex.nbMaxDataByRequest,
                     symbol: $symbol,
                     binSize: $format,
-                    columns: this.columns,
-                    reverse: this.reverse
+                    columns: ConfigBitmex.columns,
+                    reverse: ConfigBitmex.reverse
                 };
             } else {
                 data = {
                     endTime: endTime,
-                    count: this.nbMaxDataByRequest,
+                    count: ConfigBitmex.nbMaxDataByRequest,
                     symbol: $symbol,
                     binSize: $format,
-                    columns: this.columns,
-                    reverse: this.reverse
+                    columns: ConfigBitmex.columns,
+                    reverse: ConfigBitmex.reverse
                 };
             }
             
@@ -113,13 +101,13 @@ export class ApiDataBitMex implements IApiData {
                 'Accept': 'application/json',
                 'api-expires': expires,
                 'api-key': this.apiId,
-                'api-signature': this.getSignature(postBody, this.getDataMode, this.getDataPath, expires)
+                'api-signature': this.getSignature(postBody, ConfigBitmex.getDataMode, ConfigBitmex.getDataPath, expires)
             };
 
             var requestOptions = {
                 headers: headers,
-                url: this.url + this.getDataPath,
-                method: this.getDataMode,
+                url: this.url + ConfigBitmex.getDataPath,
+                method: ConfigBitmex.getDataMode,
                 body: postBody
             };
 
@@ -142,11 +130,10 @@ export class ApiDataBitMex implements IApiData {
                         returnData.push(
                             new Point(
                                 new Date(data[i].timestamp).getTime(),
-                                data[i][this.columns]
+                                data[i][ConfigBitmex.columns]
                                 )
                             );
-                    }
-            
+                    }        
                     resolve(returnData.reverse());
                 });
             }));
@@ -154,20 +141,72 @@ export class ApiDataBitMex implements IApiData {
 
         await Promise.all(arrayPromises)
             .then(data => {               
-                for (let array of data) {
-                    //console.log(new Date(array[0].$x), new Date(array[array.length - 1].$x));               
+                for (let array of data) {              
                     returnData = array.concat(returnData);
                 }            
+            }).catch((error: any) => {
+                throw new ApiDataBitMexError(`${JSON.stringify(error)}`);
             });
-
+            
         if(returnData.length === 0){
-            throw "No data for this values";         
+            throw new ApiDataBitMexError("No data for this values");
         }
         
         return returnData
     };
 
+    public async callApi(datas: object, mode: string, path: string): Promise<any> {
+        // Variables
+        let expires = new Date().getTime() + (60 * 1000),
+            postBody = JSON.stringify(datas),
+            headers = {
+                'content-type': 'application/json',
+                'Accept': 'application/json',
+                'api-expires': expires,
+                'api-key': this.apiId,
+                'api-signature': this.getSignature(postBody, mode, path, expires)
+            };
+
+        var requestOptions = {
+            headers: headers,
+            url: this.url + path,
+            method: mode,
+            body: postBody
+        };
+
+        return new Promise((resolve, reject) =>{
+            request(requestOptions, (error: any, response: any, body: any) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+
+                let data = JSON.parse(body);
+                if (data.error) {
+                    reject(data.error);
+                    return;
+                }
+                resolve(data);
+            });
+        })
+    }
+
     private getSignature(postBody: string, mode: string, path: string, expires: number){
-        return crypto.createHmac('sha256', this.apiSecret).update(mode + path + expires + postBody).digest('hex');
+        return crypto.createHmac('sha256', this.apiSecret)
+            .update(mode + path + expires + postBody)
+            .digest('hex');
+    }
+}
+
+// Error Class
+class ApiDataBitMexError extends Error {
+    constructor(...params: any) {
+        // Passer les arguments restants (incluant ceux spécifiques au vendeur) au constructeur parent
+        super(...params);
+        this.name = 'ApiDataBitMexError';
+    }
+
+    public toString(): string {
+        return `${this.stack}`
     }
 }

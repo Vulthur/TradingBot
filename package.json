@@ -9,13 +9,15 @@
     "build-client": "webpack",
     "watch-client": "webpack -w",
     "build-server": "tsc -p tsconfig-server.json",
-    "build-bot": "tsc -p tsconfig-bot.json",
-    "watch-server": "concurrently -k -p \"[{name}]\" -n \"Tsc,Nodemon\" -c \"blue.bold,yellow.bold\" \"tsc -w\" \"nodemon --watch ./dist/server/ ./dist/server/server.js\"",
+    "watch-server": "concurrently -k -p \"[{name}]\" -n \"Tsc,Nodemon\" -c \"blue.bold,yellow.bold\" \"tsc -w -p tsconfig-server.json\" \"nodemon --watch ./dist/server/ ./dist/server/server.js\"",
     "watch-browser": "browser-sync start --config bs-config.js",
-    "build": "npm run build-client && npm run build-server",
-    "watch": "concurrently -k -p \"[{name}]\" -n \"Client,Server,Browser\" -c \"cyan.bold,green.bold,red.bold\" \"npm run watch-client\" \"npm run watch-server\" \"npm run watch-browser\"",
+    "watch-backTest": "concurrently -k -p \"[{name}]\" -n \"Client,Server,Browser\" -c \"cyan.bold,green.bold,red.bold\" \"npm run watch-client\" \"npm run watch-server\" \"npm run watch-browser\"",
+    "start-backTest": "npm run build && opn http://localhost/ && node ./dist/server/server.js",
+    "build-bot": "tsc -p tsconfig-bot.json",
+    "start-bot": "npm run build-bot && node ./dist/bot/main.js",
+    "watch-bot": "concurrently -k -p \"[{name}]\" -n \"Tsc,Bot\" -c \"green.bold,red.bold\" \"tsc -w -p tsconfig-bot.json\" \"nodemon --watch ./dist/bot/ ./dist/bot/main.js\"",
     "clean": "del-cli -f dist/*",
-    "start": "npm run build && opn http://localhost/ && node ./dist/server/server.js"
+    "build": "npm run build-client && npm run build-server"
   },
   "dependencies": {
     "pixi.js": "^4.8.7",

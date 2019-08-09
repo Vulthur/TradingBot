@@ -75,6 +75,4 @@ export class Action {
 	public set $index(value: number) {
 		this.index = value;
 	}
-
-
 }
